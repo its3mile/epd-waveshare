@@ -60,8 +60,11 @@ where
     DELAY: DelayNs,
 {
     fn init(&mut self, spi: &mut SPI, delay: &mut DELAY) -> Result<(), SPI::Error> {
-        // reset the device
-        self.interface.reset(delay, 30, 10);
+        // Reset the device: 30 ms high, then 3 ms low, matching Waveshare's
+        // reference driver (EPD_3IN7_Reset). `reset` takes microseconds; the
+        // previous 30/10 held RST low for only 10 µs, too short to reliably
+        // wake the controller from deep sleep, which only a hardware reset ends.
+        self.interface.reset(delay, 30_000, 3_000);
 
         self.interface.cmd(spi, Command::SwReset)?;
         delay.delay_us(300000u32);
